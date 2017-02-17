@@ -1,0 +1,14 @@
+{
+  "presets": [
+    [
+      "env", {
+        "targets": { "node": true },
+        "modules": "commonjs",
+        "exclude": ["transform-regenerator", "transform-async-to-generator"]
+      }
+    ]
+  ],
+  "plugins": [
+    "transform-object-rest-spread"
+  ]
+}
