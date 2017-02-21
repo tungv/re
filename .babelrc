@@ -6,9 +6,11 @@
         "modules": "commonjs",
         "exclude": ["transform-regenerator", "transform-async-to-generator"]
       }
-    ]
+    ],
+    "async-to-bluebird"
   ],
   "plugins": [
-    "transform-object-rest-spread"
+    "transform-object-rest-spread",
+    "transform-flow-strip-types"
   ]
 }

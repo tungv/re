@@ -4,6 +4,7 @@
   "main": "lib/index.js",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.4.7",
     "dotenv": "^4.0.0",
     "micro": "^7.0.6",
     "redis": "^2.6.5"
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-async-to-bluebird": "^1.1.0",
     "babel-preset-env": "^1.1.8",
