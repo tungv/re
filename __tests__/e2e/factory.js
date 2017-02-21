@@ -1,36 +1,7 @@
+/* @flow */
 import rp from 'request-promise';
 import { factory } from '../../src';
-
-const dispatch = async (url, action) => {
-  const options = {
-    method: 'POST',
-    uri: url,
-    body: action,
-    json: true,
-  };
-
-  return await rp(options);
-}
-
-const query = (url, path) => rp({
-  method: 'GET',
-  uri: url + path,
-  json: true,
-});
-
-const listen = srv => new Promise((resolve, reject) => {
-  srv.listen(err => {
-    if (err) {
-      return reject(err)
-    }
-
-    const {port} = srv.address()
-    resolve({
-      url: `http://localhost:${port}`,
-      close: () => srv.close(),
-    });
-  })
-});
+import { dispatch, listen, query } from '../../test-helper';
 
 describe('factory', () => {
   test('counter', async () => {
@@ -47,7 +18,10 @@ describe('factory', () => {
     const selectors = {
       counter: state => state.counter,
     };
-    const redisConfig = 'redis://127.0.0.1:6379';
+    const redisConfig = {
+      endpoint: 'redis://127.0.0.1:6379',
+      bucketPattern: 'actions',
+    };
     const server = factory({ reducer, selectors, redisConfig });
 
     const { url, close } = await listen(server);

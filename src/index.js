@@ -37,14 +37,17 @@ const matchRegExp = (reg: RegExp, str: string): string|null => {
 type FactoryArgumentsType = {
   reducer: Function,
   selectors: { [selectorName: string]: Function },
-  redisConfig: string,
+  redisConfig: {
+    endpoint: string,
+    bucketPattern: string,
+  },
 }
 
 export const factory = ({ reducer, selectors, redisConfig }: FactoryArgumentsType): HttpServer => {
   const initialState = {};
   const store = createStore(reducer);
-  const redisClient = createRedisClient(redisConfig);
-  const actionsListKey = 'actions';
+  const redisClient = createRedisClient(redisConfig.endpoint);
+  const actionsListKey = redisConfig.bucketPattern;
 
   const appendAction = async (action: RawActionType): Promise<ActionType> => {
     const finalAction = {
