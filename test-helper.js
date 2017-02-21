@@ -1,3 +1,4 @@
+import rp from 'request-promise';
 export const dispatch = async (url, action) => {
   const options = {
     method: 'POST',
