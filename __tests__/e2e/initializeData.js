@@ -1,6 +1,7 @@
 /* @flow */
 import { factory } from '../../src';
 import { dispatch, listen, query } from '../../test-helper';
+import { createClient } from 'redis';
 
 describe('factory', () => {
   test('initialize data', async () => {
@@ -10,8 +11,11 @@ describe('factory', () => {
       bucketPattern: 'test_initialize_data',
     };
 
+    const redisClient = createClient(redisConfig.endpoint);
+    redisClient.delAsync(redisConfig.bucketPattern);
+
     // start 1st server to dispatch
-    const server = factory({
+    const server = await factory({
       reducer: (state = {}) => state,
       selectors: {},
       redisConfig,
@@ -43,7 +47,7 @@ describe('factory', () => {
       return state;
     };
 
-    const newServer = factory({
+    const newServer = await factory({
       reducer,
       selectors: { counter: state => state.counter },
       redisConfig,

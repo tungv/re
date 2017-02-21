@@ -1,10 +1,19 @@
 /* @flow */
 import rp from 'request-promise';
+import { createClient } from 'redis';
+
 import { factory } from '../../src';
 import { dispatch, listen, query } from '../../test-helper';
 
 describe('factory', () => {
   test('counter', async () => {
+    const redisConfig = {
+      endpoint: 'redis://127.0.0.1:6379',
+      bucketPattern: 'actions',
+    };
+    const redisClient = createClient(redisConfig.endpoint);
+    redisClient.delAsync(redisConfig.bucketPattern);
+
     const reducer = (state = { counter: 0 }, { type, payload }) => {
       if (type === 'INCREASE_COUNTER') {
         return {
@@ -18,11 +27,8 @@ describe('factory', () => {
     const selectors = {
       counter: state => state.counter,
     };
-    const redisConfig = {
-      endpoint: 'redis://127.0.0.1:6379',
-      bucketPattern: 'actions',
-    };
-    const server = factory({ reducer, selectors, redisConfig });
+
+    const server = await factory({ reducer, selectors, redisConfig });
 
     const { url, close } = await listen(server);
 
