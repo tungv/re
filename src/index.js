@@ -1,26 +1,40 @@
 /* @flow */
-import { config } from 'dotenv';
-import { json } from 'micro';
+import './setup-env';
+import { json, send } from 'micro';
+import redisClient from './redis-client';
 
-type ActionType = {
+type RawActionType = {
   type: string,
   payload: any,
+  meta: ?any,
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  config();
+type ActionType = RawActionType & {
+  ts: number,
+  // TODO: add user_id
 }
 
-console.log('process.env.REDIS_ENDPOINT', process.env.REDIS_ENDPOINT);
-
-const appendAction = (action: ActionType) => {
-  
+type RequestType = {
+  url: string,
+  method: 'GET' | 'PUT' | 'POST' | 'DELETE',
 }
 
-export default async (req, res) => {
+const appendAction = async (action: RawActionType): Promise<ActionType> => {
+  const finalAction = {
+    ...action,
+    ts: Date.now(),
+  };
+
+  await redisClient.lpushAsync('actions', JSON.stringify(finalAction));
+  return finalAction;
+}
+
+export default async (req: RequestType, res: any) => {
   const { url, method } = req;
 
-  return method === 'POST' ? ({
-    url, method, body: await json(req),
-  }) : { url, method };
+  switch (method) {
+    case 'POST': return await appendAction(await json(req));
+    case 'GET': return { data: 'test' };
+    default: send(res, 405, `method ${method} not supported`);
+  }
 }
