@@ -17,7 +17,8 @@
     "start": "node --harmony-async-await node_modules/.bin/micro .",
     "build": "babel src -d lib",
     "dev": "yarn build && yarn start",
-    "flow": "flow"
+    "flow": "flow",
+    "test": "jest --forceExit"
   },
   "engine": {
     "node": "7"
