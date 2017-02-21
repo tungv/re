@@ -1,18 +1,12 @@
 /* @flow */
 import rp from 'request-promise';
-import { createClient } from 'redis';
-
+import { createSharedRedisClient } from '../../utils/shared-test-config';
 import { factory } from '../../src';
-import { dispatch, listen, query } from '../../test-helper';
+import { dispatch, listen, query } from '../../utils/test-helpers';
 
 describe('factory', () => {
   test('counter', async () => {
-    const redisConfig = {
-      endpoint: 'redis://127.0.0.1:6379',
-      bucketPattern: 'actions',
-    };
-    const redisClient = createClient(redisConfig.endpoint);
-    redisClient.delAsync(redisConfig.bucketPattern);
+    const { redisConfig } = createSharedRedisClient('actions');
 
     const reducer = (state = { counter: 0 }, { type, payload }) => {
       if (type === 'INCREASE_COUNTER') {
@@ -20,7 +14,6 @@ describe('factory', () => {
           counter: state.counter + payload,
         }
       }
-
       return state;
     };
 
@@ -34,11 +27,11 @@ describe('factory', () => {
 
     const action1 = {
       type: 'INCREASE_COUNTER',
-      payload: 2
+      payload: 1
     };
     const action2 = {
       type: 'INCREASE_COUNTER',
-      payload: 40
+      payload: 88
     };
 
     await dispatch(url, action1);
@@ -46,6 +39,6 @@ describe('factory', () => {
 
     const res = await query(url, '/query/counter');
     close();
-    expect(res).toEqual({ data: 42 });
+    expect(res).toEqual({ data: 89 });
   });
 });

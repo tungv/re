@@ -1,19 +1,12 @@
 /* @flow */
 import { factory } from '../../src';
-import { dispatch, listen, query } from '../../test-helper';
-import { createClient } from 'redis';
+import { dispatch, listen, query } from '../../utils/test-helpers';
+import { createSharedRedisClient } from '../../utils/shared-test-config';
 
 describe('factory', () => {
   test('initialize data', async () => {
     // shared config
-    const redisConfig = {
-      endpoint: 'redis://localhost:6379',
-      bucketPattern: 'test_initialize_data',
-    };
-
-    const redisClient = createClient(redisConfig.endpoint);
-    redisClient.delAsync(redisConfig.bucketPattern);
-
+    const { redisConfig } = createSharedRedisClient('initialize_data');
     // start 1st server to dispatch
     const server = await factory({
       reducer: (state = {}) => state,
