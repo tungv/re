@@ -9,7 +9,7 @@ import service from '../../src';
 const NOW = 1330688329321;
 
 const clearRedis = async () => {
-  await redisClient.del('actions');
+  await redisClient.delAsync('actions');
 }
 
 const dispatch = async (url, action) => {
