@@ -3,27 +3,10 @@ import './setup-env';
 import { createStore } from 'redux';
 import micro, { json, send } from 'micro';
 import { createRedisClient } from './redis-client';
+import { computeState } from './state';
 
-type RawActionType = {
-  type: string,
-  payload: any,
-  meta: ?any,
-}
-
-type ActionType = RawActionType & {
-  ts: number,
-  // TODO: add user_id
-}
-
-type RequestType = {
-  url: string,
-  method: 'GET' | 'PUT' | 'POST' | 'DELETE',
-}
-
-type HttpServer = {
-  listen: Function,
-  close: Function,
-}
+import type { RawActionType, ActionType } from './types/Action';
+import type { FactoryArgumentsType, RequestType, HttpServerType } from './types/Factory';
 
 const matchRegExp = (reg: RegExp, str: string): string|null => {
   const matches = str.match(reg);
@@ -34,41 +17,33 @@ const matchRegExp = (reg: RegExp, str: string): string|null => {
   return null;
 };
 
-type FactoryArgumentsType = {
-  reducer: Function,
-  selectors: { [selectorName: string]: Function },
-  redisConfig: {
-    endpoint: string,
-    bucketPattern: string,
-  },
-}
 
-export const factory = async ({ reducer, selectors, redisConfig }: FactoryArgumentsType): Promise<HttpServer> => {
+// load initialState from actionList in redisClient
+// create store
+// return server handling requests
+export const factory = async ({
+  reducer,
+  selectors,
+  redisConfig,
+}: FactoryArgumentsType): Promise<HttpServerType> => {
   const actionsListKey = redisConfig.bucketPattern;
   const redisClient = createRedisClient(redisConfig.endpoint);
   const initialActionArray = await redisClient.lrangeAsync(actionsListKey, 0, -1);
 
-
-  const initialState = initialActionArray.length === 0 ?
-    undefined :
-    initialActionArray.reduce((state, jsonAction) => {
-      const action = JSON.parse(jsonAction);
-      return reducer(state, action);
-    }, undefined);
-
+  const initialState = computeState(initialActionArray, reducer, undefined);
 
   const store = createStore(reducer, initialState);
 
-  const appendAction = async (action: RawActionType): Promise<ActionType> => {
-    const finalAction = {
-      ...action,
+  const appendAction = async (rawAction: RawActionType): Promise<ActionType> => {
+    const action = {
+      ...rawAction,
       ts: Date.now(),
     };
 
-    store.dispatch(finalAction);
+    store.dispatch(action);
 
-    await redisClient.lpushAsync(actionsListKey, JSON.stringify(finalAction));
-    return finalAction;
+    await redisClient.lpushAsync(actionsListKey, JSON.stringify(action));
+    return action;
   }
 
   const server = micro(async (req: RequestType, res: any) => {
@@ -89,7 +64,7 @@ export const factory = async ({ reducer, selectors, redisConfig }: FactoryArgume
             return;
           }
 
-          return {data: selector(store.getState())};
+          return { data: selector(store.getState()) };
         default:
           send(res, 405, `method ${method} not supported`);
       }

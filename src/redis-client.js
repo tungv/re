@@ -1,3 +1,4 @@
+/* @flow */
 import redis from 'redis';
 import bluebird from 'bluebird';
 
@@ -5,4 +6,5 @@ import bluebird from 'bluebird';
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-export const createRedisClient = (config: string) => redis.createClient(config);
+
+export const createRedisClient = (endpoint: string) => redis.createClient(endpoint);
