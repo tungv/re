@@ -14,7 +14,7 @@
     "request-promise": "^4.1.1"
   },
   "scripts": {
-    "start": "node --harmony-async-await node_modules/.bin/micro .",
+    "start": "micro index.js",
     "build": "babel src -d lib",
     "dev": "yarn build && yarn start",
     "flow": "flow",
